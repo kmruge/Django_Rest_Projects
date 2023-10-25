@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 # Create your views here.

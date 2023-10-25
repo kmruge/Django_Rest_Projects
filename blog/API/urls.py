@@ -17,10 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path , include
 from account.views import Register, login
-from post.views import post_Blog
+from post.views import post_Blog, APIListCreatelistView, listcreatecviewset
+from rest_framework import routers
+
+router=routers.DefaultRouter()
+router.register(r'listcreateViewSet',listcreatecviewset)
+urlpatterns = router.urls
 
 urlpatterns = [
     path('register',Register.as_view(),name='register'),
     path('login',login.as_view(),name='login'),
-    path('createblog/',post_Blog.as_view(),name='createblog')
+    path('createblog/',post_Blog.as_view(),name='createblog'),
+    path('updatecreate/', APIListCreatelistView.as_view(),name='updatecreateViewAPI'),
+     path('',include(router.urls))
 ]
