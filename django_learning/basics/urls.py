@@ -23,4 +23,5 @@ urlpatterns = [
     path('profileModel/<int:pk>/',views.profile_obj_model),
     path('profileSerializer/',views.profile),
     path('profileSerializer/<int:pk>/',views.profile_obj),
+    path('entry/<int:pk>/',views.entry.as_view()),
 ]

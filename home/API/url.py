@@ -16,12 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from muru.views import index, personView
-from muru.views import edit_info, Color_view,Color_view_edit,PersonModelViewSet,personViewSet,registerUser,LogInAuth, passChange
+from muru.views import edit_info, Color_view,Color_view_edit,PersonModelViewSet,personViewSet,registerUser,LogInAuth, passChange, showPersonDetails
 from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'personModelViewSet',PersonModelViewSet,basename='personModelViewSet')
 router.register(r'personViewSet',personViewSet,basename='personViewSet')
+router.register(r'allperson',showPersonDetails, basename='allperson')
 urlpatterns = router.urls
 
 urlpatterns = [

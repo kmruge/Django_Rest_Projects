@@ -32,8 +32,6 @@ class personSerializers(serializers.ModelSerializer):
         #We can write validate_(Data_Field_Name) which takes only field data we mentioned.
     
     def get_Relation(self,obj):
-        print(obj.Address)
-        print("line")
         color_name=color.objects.get(id=3)
         return {"Color_Name":obj.Name,"Address_Name":"India"}
 
