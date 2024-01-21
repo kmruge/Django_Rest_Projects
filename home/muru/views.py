@@ -13,13 +13,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
+from rest_framework.decorators import action
+from rest_framework import generics
+from rest_framework_simplejwt.tokens import RefreshToken
+from muru.permission import personPermission
 # Create your views here.
 
 @api_view(['GET','POST'])
 def index(request):
     if request.method =='POST':
         data=request.data
-        print(data)
         mess='This is POST Method'
         dict={
             'name':data["name"],
@@ -137,6 +140,10 @@ class PersonModelViewSet(viewsets.ModelViewSet):
      serializer_class=personSerializers
      queryset=person.objects.all()
 
+     # We can't limit the request type in modelsViewSet like @api_view, APIView, ViewSet(create, list, retrieve etc)
+     # To have request limitation, we need to use http_method_names
+     http_method_names = ['get', 'post', 'patch']
+
      def list(self,request):
           search=request.GET.get('search')
           queryset=self.queryset
@@ -147,8 +154,8 @@ class PersonModelViewSet(viewsets.ModelViewSet):
      
      
 class personViewSet(viewsets.ViewSet):
-     permission_classes = [IsAuthenticated]
-     authentication_classes = [TokenAuthentication]
+     # permission_classes = [IsAuthenticated]
+     # authentication_classes = [TokenAuthentication]
      #Create instance in model class
      def create(self, request):
           serializer=personSerializers(data=request.data)
@@ -167,6 +174,14 @@ class personViewSet(viewsets.ViewSet):
           queryset=person.objects.all()
           serializer=personSerializers(queryset,many=True)
           return Response(serializer.data)
+     
+     # Action decorator only for ViewSet. We can have custom function inside the Viewset class.
+     # detail=False pk should not be passed in the function. URL look like http://127.0.0.1:1909/api/personViewSet/send_email/
+     # detail=True pk value should be present in the function. URL look like http://127.0.0.1:1909/api/personViewSet/1/send_email/
+
+     @action(detail=False, methods=['post'])
+     def send_email(self, request, pk):
+          return Response('Email is sent')
      
 class registerUser(APIView):
 
@@ -213,7 +228,35 @@ class LogInAuth(APIView):
           if not user:
                return Response("Invalid Credential")
           token,_=Token.objects.get_or_create(user=user)
+          # refresh = RefreshToken.for_user(user)
           return Response({
                "User":data['username'],
-               "token":str(token)
+               "token":str(token),
+               # "refresh Toke": {'refresh': str(refresh), 'access': str(refresh.access_token)}
           })
+     
+class showPersonDetails(viewsets.ViewSet):
+     serializer=personSerializers
+     queryset=person.objects.all()
+     permission_classes = [IsAuthenticated, personPermission]
+     authentication_classes = [BasicAuthentication, TokenAuthentication]
+     def list(self, request):
+          serializer=personSerializers(self.queryset, many=True)
+          return Response(serializer.data)
+     
+     def retrieve(self, request, pk):
+          obj=get_object_or_404( self.queryset, pk=pk)
+          # we can usr check object permission to check the permission for the specific object (has_object_permission)
+          self.check_object_permissions(request, obj)
+          serializer=personSerializers(obj)
+          return Response({"test":"test", "value":serializer.data})
+
+     # this get_object can be reused for retrieve, destroy, update, partial_update
+     def get_object(self, pk):
+          obj=get_object_or_404(self.queryset, pk=pk)
+          return obj
+     
+     def destroy(self, request, pk):
+          obj=self.get_object(pk)
+          obj.delete()
+          return Response("Object Deleted Successfully")
